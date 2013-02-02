@@ -12,6 +12,5 @@ setup(
     license='MIT',
     keywords='twitter',
     description='Command line scripts for geocoding old and new tweets from twitter.com and for downloading embedded photos.',
-    long_description=open('README.txt').read(),
-    install_requires = ['twitterapi', 'pygeocoder', 'Fridge']
+    install_requires = ['twitterapi', 'pygeocoder', 'fridge']
 )
