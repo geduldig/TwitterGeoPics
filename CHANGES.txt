@@ -1,0 +1,9 @@
+v0.1.0, 01 Jan 2013 -- Initial release.
+
+v0.1.1, 08 Jan 2013 -- Added cache for Google geocoder
+
+v0.1.2, 20 Jan 2013 -- Improved exception handling for less fragile connections to twitter.com.
+                       Streaming 'location' option now uses the API's 'locations' parameter. 
+                       Dynamic throttling of Google geocode requests to not exceed rate limit.
+
+v1.0.0, 30 Jan 2013 -- Uploaded to github.
