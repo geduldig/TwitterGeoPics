@@ -1,5 +1,5 @@
 """
-	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO twittergeo/credentials.txt 
+	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO puttytat/credentials.txt 
 	          OR USE -oauth OPTION TO USE A DIFFERENT FILE CONTAINING THE CREDENTIALS.
 	
 	Downloads old tweets from the newest to the oldest that contain any of the words 
@@ -32,11 +32,12 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import argparse
 import Geocoder
 import os
-import twitterapi
+import puttytat
 import urllib
 
 OAUTH = None
 GEO = Geocoder.Geocoder()
+
 
 def parse_tweet(status, photo_dir, stalk):
 	"""If tweet contains photo, print tweet.
@@ -65,6 +66,7 @@ def parse_tweet(status, photo_dir, stalk):
 					file_name = os.path.join(photo_dir, media['id_str']) + '.' + photo_url.split('.')[-1]
 					urllib.urlretrieve(photo_url, file_name)
 
+
 def search_tweets(list, wait, photo_dir, region, stalk):
 	"""Get tweets containing any words in 'list' and that have location or coordinates in 'region'
 	
@@ -73,9 +75,9 @@ def search_tweets(list, wait, photo_dir, region, stalk):
 	params = { 'q': words }
 	if region:
 		params['geocode'] = '%f,%f,%fkm' % region # lat,lng,radius
-	search = twitterapi.TwSearch(OAUTH, params)
 	while True:
-		for item in search.past_results(wait):
+		tw = puttytat.TwitterRestPager(OAUTH)
+		for item in tw.request('search/tweets', params, wait):
 			if 'text' in item:
 				parse_tweet(item, photo_dir, stalk)
 			elif 'message' in item:
@@ -84,6 +86,7 @@ def search_tweets(list, wait, photo_dir, region, stalk):
 				elif item['code'] == 88:
 					print>>sys.stderr, 'Suspend search until %s' % search.get_quota()['reset']
 				raise Exception('Message from twiter: %s' % item['message'])
+		
 			
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Search tweet history.')
@@ -96,12 +99,7 @@ if __name__ == '__main__':
 	parser.add_argument('words', metavar='W', type=str, nargs='+', help='word(s) to search')
 	args = parser.parse_args()	
 
-	if args.oauth:
-		OAUTH = twitterapi.TwCredentials.read_file(args.oauth)
-	else:
-		path = os.path.dirname(__file__)
-		path = os.path.join(path, 'credentials.txt')
-		OAUTH = twitterapi.TwCredentials.read_file(path)
+	OAUTH = puttytat.TwitterOauth.read_file(args.oauth)
 	
 	try:
 		if args.location:

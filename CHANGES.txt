@@ -7,3 +7,5 @@ v0.1.2, 20 Jan 2013 -- Improved exception handling for less fragile connections 
                        Dynamic throttling of Google geocode requests to not exceed rate limit.
 
 v1.0.0, 30 Jan 2013 -- Uploaded to github.
+
+v1.1.0, 12 Feb 2013 -- Replaced TwitterAPI with puttytat for Twitter requests.

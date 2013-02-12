@@ -1,5 +1,5 @@
 """
-	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO twittergeo/credentials.txt 
+	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO puttytat/credentials.txt 
 	          OR USE -oauth OPTION TO USE A DIFFERENT FILE CONTAINING THE CREDENTIALS.
 	
 	Downloads real-time tweets.  You must supply either one or both of the -words and
@@ -29,12 +29,12 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 import argparse
 import Geocoder
-import os
-import twitterapi
+import puttytat
 import urllib
 
 OAUTH = None
 GEO = Geocoder.Geocoder()
+
 
 def parse_tweet(status, region):
 	"""Print tweet, location and geocode
@@ -50,22 +50,23 @@ def parse_tweet(status, region):
 			print>>sys.stderr, '*** GEOCODER QUOTA EXCEEDED:', GEO.count_request
 			raise
 
+
 def stream_tweets(list, region):
 	"""Get tweets containing any words in 'list' or that have location or coordinates in 'region'
 	
 	"""
 	params = {}
-	if list != None:
+	if list is not None:
 		words = ','.join(list)
 		params['track'] = words
-	if region != None:
+	if region is not None:
 		params['locations'] = '%f,%f,%f,%f' % region
 		print 'REGION', region
 	while True:
+		tw = puttytat.TwitterStream(OAUTH)
 		try:
-			stream = twitterapi.TwStream(OAUTH, params)
 			while True:
-				for item in stream.results():
+				for item in tw.request('statuses/filter', params):
 					if 'text' in item:
 						parse_tweet(item, region)
 					elif 'disconnect' in item:
@@ -74,6 +75,7 @@ def stream_tweets(list, region):
 			# reconnect on 401 errors and socket timeouts
 			print>>sys.stderr, '*** MUST RECONNECT', e
 
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Get real-time tweet stream.')
 	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
@@ -81,15 +83,10 @@ if __name__ == '__main__':
 	parser.add_argument('-words', metavar='W', type=str, nargs='+', help='word(s) to track')
 	args = parser.parse_args()	
 
-	if args.words == None and args.location == None:
+	if args.words is None and args.location is None:
 		sys.exit('You must use either -words or -locoation or both.')
 
-	if args.oauth:
-		OAUTH = twitterapi.TwCredentials.read_file(args.oauth)
-	else:
-		path = os.path.dirname(__file__)
-		path = os.path.join(path, 'credentials.txt')
-		OAUTH = twitterapi.TwCredentials.read_file(path)
+	OAUTH = puttytat.TwitterOauth.read_file(args.oauth)
 
 	if args.location:
 		if args.location.lower() == 'all':

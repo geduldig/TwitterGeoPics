@@ -46,7 +46,7 @@ class Geocoder:
 		self.throttle = THROTTLE_INCR  # the throttle in seconds to wait between requests
 		self.last_exec = None          # time updated at each geocode request
 		
-		if cache_file == None:
+		if cache_file is None:
 			path = os.path.dirname(__file__)
 			cache_file = os.path.join(path, DEFAULT_CACHE_FILE)
 			
@@ -183,7 +183,7 @@ class Geocoder:
 		"""
 		# start off with the location in the user's profile (it may be empty)
 		place = status['user']['location']
-		if status['coordinates'] != None:
+		if status['coordinates'] is not None:
 			# the status is geocoded (swapped lat/lng), so use the coordinates to get the address
 			lng, lat = status['coordinates']['coordinates']
 			place = self.latlng_to_address(float(lat), float(lng))
@@ -197,19 +197,19 @@ class Geocoder:
 				lat, lng = coord.strip().split(',', 1)
 			elif ' ' in coord:
 				lat, lng = coord.strip().split(' ', 1)
-			if lat != None and lng != None:
+			if lat is not None and lng is not None:
 				try:
 					lat, lng = lat.strip(), lng.strip()
 					place = self.latlng_to_address(float(lat), float(lng))
 					self.count_has_location += 1
 				except ValueError, TypeError:
 					pass
-		elif place != None and place != '':
+		elif place is not None and place != '':
 			# there is a location in the user profile, so see if it is usable
 			# cache key is the place stripped of all punctuation and lower case
 			key = ' '.join(''.join(e for e in place if e.isalnum() or e == ' ').split()).lower()
 			cached_data = None
-			if self.cache != None and key in self.cache:
+			if self.cache is not None and key in self.cache:
 				# see if the place name is in our cache
 				cached_data = self.cache[key]
 				lat, lng = cached_data[0], cached_data[1]
@@ -218,7 +218,7 @@ class Geocoder:
 				# see if Google can interpret the location
 				lat, lng = self.address_to_latlng(place)
 				cached_data = ( lat, lng, 1 )
-			if self.cache != None:
+			if self.cache is not None:
 				self.cache[key] = cached_data
 			self.count_has_location += 1	
 		else:

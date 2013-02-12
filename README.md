@@ -12,7 +12,7 @@ Use the location option to restrict searches to a geographic location.  Twitter 
 
 Google does not require autentication, but it does enforce a daily limit of about 2,500 requests per day and about 10 requests per second.
 
-The Twitter API requires OAuth credentials which you can get by creating an application on dev.twitter.com.  Once you have your OAuth secrets and keys, copy them into twittergeo/credentials.txt.  Alternatively, specify the credentials file on the command line.
+The Twitter API requires OAuth credentials which you can get by creating an application on dev.twitter.com.  Once you have your OAuth secrets and keys, copy them into puttytat/credentials.txt.  Alternatively, specify the credentials file on the command line.
 
 Twitter restricts searching old tweets to within roughly the past week.  Twitter also places a bandwidth limit on searching current tweet, but you will notice this only when you are searching a popular word.  When this limit occurs the total number of skipped tweets is printed and the connection is maintained.
 
@@ -49,7 +49,7 @@ A wrapper for the pygeocoder package.  It adds throttling to respect Google's da
 
 		pip install twittergeo
 
-2. Either copy your OAuth consumer secret and key and your access token secret and key into twittergeo/credentials.txt, or copy them into another file which you will specify on the command line.  See credentials.txt for the expected file format.
+2. Either copy your OAuth consumer secret and key and your access token secret and key into puttytat/credentials.txt, or copy them into another file which you will specify on the command line.  See credentials.txt for the expected file format.
 
 3. Run a script type with '-m' option, for example:
 
@@ -60,7 +60,7 @@ A wrapper for the pygeocoder package.  It adds throttling to respect Google's da
 
 This package uses the following external packages.
 
-* twitterapi - for downloading tweets
+* puttytat - for downloading tweets
 * pygeocoder - for geo-referencing using Google's Maps service
 * fridge - for caching latitudes and longitudes in a persistant dict
 
