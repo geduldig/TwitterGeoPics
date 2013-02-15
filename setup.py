@@ -6,7 +6,7 @@ setup(
     author='Jonas Geduldig',
     author_email='boxnumber03@gmail.com',
     packages=['twittergeo'],
-    package_data={'': ['credentials.txt']},
+    package_data={'': ['credentials.txt', 'geocode.cache']},
     url='https://github.com/geduldig/twittergeo',
     download_url = 'https://github.com/gedldig/twittergeo/tarball/master',
     license='MIT',
