@@ -47,8 +47,9 @@ class Geocoder:
 		self.last_exec = None          # time updated at each geocode request
 		
 		if cache_file is None:
-			path = os.path.dirname(__file__)
-			cache_file = os.path.join(path, DEFAULT_CACHE_FILE)
+			#path = os.path.dirname(__file__)
+			#cache_file = os.path.join(path, DEFAULT_CACHE_FILE)
+			cache_file = DEFAULT_CACHE_FILE
 			
 		# cache is a persistent dict with place address as key and lat/lng and count as value
 		self.cache = fridge.Fridge(cache_file)
