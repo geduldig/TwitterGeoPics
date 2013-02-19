@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='TwitterGeo',
-    version='1.1.0',
+    version='1.1.1',
     author='Jonas Geduldig',
     author_email='boxnumber03@gmail.com',
     packages=['twittergeo'],

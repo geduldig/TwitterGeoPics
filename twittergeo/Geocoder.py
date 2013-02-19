@@ -254,8 +254,8 @@ class Geocoder:
 		results = self.geocode(place)
 		geometry = results.raw[0]['geometry']
 		latC, lngC = geometry['location']['lat'], geometry['location']['lng']
-		latSW, lngSW = geometry['bounds']['southwest']['lat'], geometry['bounds']['southwest']['lng']
-		latNE, lngNE = geometry['bounds']['northeast']['lat'], geometry['bounds']['northeast']['lng'] 
+		latSW, lngSW = geometry['viewport']['southwest']['lat'], geometry['viewport']['southwest']['lng']
+		latNE, lngNE = geometry['viewport']['northeast']['lat'], geometry['viewport']['northeast']['lng'] 
 		return latC, lngC, latSW, lngSW, latNE, lngNE
 		
 	def get_region_circle(self, place):
