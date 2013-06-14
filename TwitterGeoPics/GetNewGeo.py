@@ -1,24 +1,3 @@
-"""
-	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO puttytat/credentials.txt 
-	          OR USE -oauth OPTION TO USE A DIFFERENT FILE CONTAINING THE CREDENTIALS.
-	
-	Downloads real-time tweets.  You must supply either one or both of the -words and
-	-location options.  Prints the tweet text and location information, including 
-	latitude and longitude from Google's Map service.
-
-	Use the -words option to get tweets that contain any of the words that are passed 
-	as arguments on the command line.
-		
-	Use the -location option to get tweets from a geographical region.  Location is 
-	determined only from geocode in the tweet.  Use -location ALL to get all geocoded 
-	tweets from any location.
-	
-	The script calls Twitter's Streaming API which is bandwidth limitted.  If you 
-	exceed the rate limit, Twitter sends a message with the total number of tweets 
-	skipped during the current connection.  This number is printed, and the connection 
-	remains open.
-"""
-
 __author__ = "Jonas Geduldig"
 __date__ = "December 20, 2012"
 __license__ = "MIT"
@@ -29,17 +8,14 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 import argparse
 import Geocoder
-import puttytat
-import urllib
+from TwitterAPI import TwitterAPI, TwitterOAuth
 
-OAUTH = None
+
 GEO = Geocoder.Geocoder()
 
 
 def parse_tweet(status, region):
-	"""Print tweet, location and geocode
-	
-	"""
+	"""Print tweet, location and geocode."""
 	try:
 		geocode = GEO.geocode_tweet(status)
 		print '\n%s: %s' % (status['user']['screen_name'], status['text'])
@@ -51,10 +27,8 @@ def parse_tweet(status, region):
 			raise
 
 
-def stream_tweets(list, region):
-	"""Get tweets containing any words in 'list' or that have location or coordinates in 'region'
-	
-	"""
+def stream_tweets(api, list, region):
+	"""Get tweets containing any words in 'list' or that have location or coordinates in 'region'."""
 	params = {}
 	if list is not None:
 		words = ','.join(list)
@@ -63,10 +37,11 @@ def stream_tweets(list, region):
 		params['locations'] = '%f,%f,%f,%f' % region
 		print 'REGION', region
 	while True:
-		tw = puttytat.TwitterStream(OAUTH)
 		try:
+			api.request('statuses/filter', params)
+			iter = api.get_iterator()
 			while True:
-				for item in tw.request('statuses/filter', params):
+				for item in iter:
 					if 'text' in item:
 						parse_tweet(item, region)
 					elif 'disconnect' in item:
@@ -77,16 +52,17 @@ def stream_tweets(list, region):
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='Get real-time tweet stream.')
-	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
+	parser = argparse.ArgumentParser(description='Get real-time tweet stream with geocode.')
 	parser.add_argument('-location', type=str, help='limit tweets to a place; use ALL to get all geocoded tweets')
+	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
 	parser.add_argument('-words', metavar='W', type=str, nargs='+', help='word(s) to track')
 	args = parser.parse_args()	
 
 	if args.words is None and args.location is None:
 		sys.exit('You must use either -words or -locoation or both.')
 
-	OAUTH = puttytat.TwitterOauth.read_file(args.oauth)
+	oauth = TwitterOAuth.read_file(args.oauth)
+	api = TwitterAPI(oauth.consumer_key, oauth.consumer_secret, oauth.access_token_key, oauth.access_token_secret)
 
 	if args.location:
 		if args.location.lower() == 'all':
@@ -99,7 +75,7 @@ if __name__ == '__main__':
 		region = None
 	
 	try:
-		stream_tweets(args.words, region)
+		stream_tweets(api, args.words, region)
 	except KeyboardInterrupt:
 		print>>sys.stderr, '\nTerminated by user'
 				

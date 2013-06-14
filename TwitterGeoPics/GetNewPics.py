@@ -1,29 +1,3 @@
-"""
-	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO puttytat/credentials.txt 
-	          OR USE -oauth OPTION TO USE A DIFFERENT FILE CONTAINING THE CREDENTIALS.
-	
-	Downloads real-time tweets that contain embedded photo URLs.  You must supply 
-	either one or both of the -words and -location options.  Prints the tweet text, 
-	location information, including latitude and longitude from Google's Map service,
-	and all photo URLs.
-
-	Use the -words option to get tweets that contain any of the words that are passed 
-	as arguments on the command line.
-		
-	Use the -location option to get tweets from a geographical region.  Location is 
-	determined only from geocode in the tweet.  Use -location ALL to get all geocoded 
-	tweets from any location.
-	
-	Use the -photo_dir option to save photos to a directory.
-	
-	Use the -stalk flag to print latitude and longitude from Google's Map service.
-	
-	The script calls Twitter's Streaming API which is bandwidth limitted.  If you 
-	exceed the rate limit, Twitter sends a message with the total number of tweets 
-	skipped during the current connection.  This number is printed, and the connection 
-	remains open.
-"""
-
 __author__ = "Jonas Geduldig"
 __date__ = "December 20, 2012"
 __license__ = "MIT"
@@ -35,19 +9,15 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 import argparse
 import Geocoder
 import os
-import puttytat
+from TwitterAPI import TwitterAPI, TwitterOAuth
 import urllib
 
-OAUTH = None
+
 GEO = Geocoder.Geocoder()
 
 
 def parse_tweet(status, photo_dir, stalk):
-	"""If tweet contains photo, print tweet.
-	   If stalking, print location and geocode.
-	   If photo_dir, print photo id and save photo to file.
-	
-	"""
+	"""Use only tweets that embed photos."""
 	if 'media' in status['entities']:
 		photo_count = 0
 		for media in  status['entities'].get('media'):
@@ -63,17 +33,16 @@ def parse_tweet(status, photo_dir, stalk):
 					except Exception, e:
 						if GEO.quota_exceeded:
 							print>>sys.stderr, '*** GEOCODER QUOTA EXCEEDED:', GEO.count_request
-				photo_url = media['media_url_https']
 				if photo_dir:
-					print media['id_str']
-					file_name = os.path.join(photo_dir, media['id_str']) + '.' + photo_url.split('.')[-1]
+					photo_url = media['media_url_https']
+					screen_name = status['user']['screen_name']
+					print screen_name
+					file_name = os.path.join(photo_dir, screen_name) + '.' + photo_url.split('.')[-1]
 					urllib.urlretrieve(photo_url, file_name)
 					
 
-def stream_tweets(list, photo_dir, region, stalk):
-	"""Get tweets containing any words in 'list' or that have location or coordinates in 'region'
-	
-	"""
+def stream_tweets(api, list, photo_dir, region, stalk, no_retweets):
+	"""Get tweets containing any words in 'list' or that have location or coordinates in 'region'."""
 	params = {}
 	if list is not None:
 		words = ','.join(list)
@@ -82,12 +51,14 @@ def stream_tweets(list, photo_dir, region, stalk):
 		params['locations'] = '%f,%f,%f,%f' % region
 		print 'REGION', region
 	while True:
-		tw = puttytat.TwitterStream(OAUTH)
 		try:
+			api.request('statuses/filter', params)
+			iter = api.get_iterator()
 			while True:
-				for item in tw.request('statuses/filter', params):
+				for item in iter:
 					if 'text' in item:
-						parse_tweet(item, photo_dir, stalk)
+						if not no_retweets or not item.has_key('retweeted_status'):
+							parse_tweet(item, photo_dir, stalk)
 					elif 'disconnect' in item:
 						raise Exception('Disconnect: %s' % item['disconnect'].get('reason'))
 		except Exception, e:
@@ -96,9 +67,10 @@ def stream_tweets(list, photo_dir, region, stalk):
 			
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='Get real-time tweet stream.')
-	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
+	parser = argparse.ArgumentParser(description='Get real-time tweet stream with embedded pics.')
 	parser.add_argument('-location', type=str, help='limit tweets to a place; use ALL to get all geocoded tweets')
+	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
+	parser.add_argument('-no_retweets', action='store_true', help='exclude re-tweets')
 	parser.add_argument('-photo_dir', metavar='DIRECTORYNAME', type=str, help='download photos to this directory')
 	parser.add_argument('-stalk', action='store_true', help='print tweet location')
 	parser.add_argument('-words', metavar='W', type=str, nargs='+', help='word(s) to track')
@@ -107,7 +79,8 @@ if __name__ == '__main__':
 	if args.words is None and args.location is None:
 		sys.exit('You must use either -words or -locoation or both.')
 
-	OAUTH = puttytat.TwitterOauth.read_file(args.oauth)
+	oauth = TwitterOAuth.read_file(args.oauth)
+	api = TwitterAPI(oauth.consumer_key, oauth.consumer_secret, oauth.access_token_key, oauth.access_token_secret)
 
 	if args.location:
 		if args.location.lower() == 'all':
@@ -120,7 +93,7 @@ if __name__ == '__main__':
 		region = None
 	
 	try:
-		stream_tweets(args.words, args.photo_dir, region, args.stalk)
+		stream_tweets(api, args.words, args.photo_dir, region, args.stalk, args.no_retweets)
 	except KeyboardInterrupt:
 		print>>sys.stderr, '\nTerminated by user'
 		

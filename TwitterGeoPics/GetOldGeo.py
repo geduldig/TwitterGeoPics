@@ -1,22 +1,3 @@
-"""
-	REQUIRED: PASTE YOUR TWITTER OAUTH CREDENTIALS INTO puttytat/credentials.txt 
-	          OR USE -oauth OPTION TO USE A DIFFERENT FILE CONTAINING THE CREDENTIALS.
-	
-	Downloads old tweets from the newest to the oldest that contain any of the words 
-	that are passed as arguments on the command line.  Prints the tweet text and 
-	location information, including latitude and longitude from Google's Map service.
-	
-	Use the -location option to get tweets from a geographical region.  If you want to 
-	override the default radius (in km) use the -radius option.  Location is 
-	determined from either the user's profile or geocode.
-	
-	The script calls Twitter's REST API which permits about a week's worth of old 
-	tweets to be downloaded before breaking the connection.  Twitter may also 
-	disconnect if you exceed 180 downloads per 15 minutes.  For this reason sleep is 
-	called after each request.  The default is 5 seconds.  Override with the '-wait' 
-	option.
-"""
-
 __author__ = "Jonas Geduldig"
 __date__ = "December 20, 2012"
 __license__ = "MIT"
@@ -27,17 +8,14 @@ sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
 import argparse
 import Geocoder
-import puttytat
-import urllib
+from TwitterAPI import TwitterAPI, TwitterOAuth, TwitterRestPager
 
-OAUTH = None
+
 GEO = Geocoder.Geocoder()
 
 
 def parse_tweet(status):
-	"""Print tweet, location and geocode
-	
-	"""
+	"""Print tweet, location and geocode."""
 	try:
 		geocode = GEO.geocode_tweet(status)
 		print '\n%s: %s' % (status['user']['screen_name'], status['text'])
@@ -48,17 +26,15 @@ def parse_tweet(status):
 			raise
 
 
-def search_tweets(list, wait, region):
-	"""Get tweets containing any words in 'list' and that have location or coordinates in 'region'
-	
-	"""
+def search_tweets(api, list, region):
+	"""Get tweets containing any words in 'list' and that have location or coordinates in 'region'."""
 	words = ' OR '.join(list)
 	params = { 'q': words }
 	if region:
 		params['geocode'] = '%f,%f,%fkm' % region # lat,lng,radius
 	while True:
-		tw = puttytat.TwitterRestPager(OAUTH)
-		for item in tw.request('search/tweets', params, wait):
+		iter = TwitterRestPager(api, 'search/tweets', params).get_iterator()
+		for item in iter:
 			if 'text' in item:
 				parse_tweet(item)
 			elif 'message' in item:
@@ -71,14 +47,14 @@ def search_tweets(list, wait, region):
 				
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Search tweet history.')
-	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
-	parser.add_argument('-wait', type=int, default=5, help='seconds to wait between searches')
 	parser.add_argument('-location', type=str, help='limit tweets to a place')
+	parser.add_argument('-oauth', metavar='FILENAME', type=str, help='read OAuth credentials from file')
 	parser.add_argument('-radius', type=float, help='distance from "location" in km')
 	parser.add_argument('words', metavar='W', type=str, nargs='+', help='word(s) to search')
 	args = parser.parse_args()	
 
-	OAUTH = puttytat.TwitterOauth.read_file(args.oauth)
+	oauth = TwitterOAuth.read_file(args.oauth)
+	api = TwitterAPI(oauth.consumer_key, oauth.consumer_secret, oauth.access_token_key, oauth.access_token_secret)
 	
 	try:
 		if args.location:
@@ -89,7 +65,7 @@ if __name__ == '__main__':
 			region = (lat, lng, radius)
 		else:
 			region = None
-		search_tweets(args.words, args.wait, region)
+		search_tweets(api, args.words, region)
 	except KeyboardInterrupt:
 		print>>sys.stderr, '\nTerminated by user'
 	except Exception, e:

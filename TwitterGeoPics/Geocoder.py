@@ -5,7 +5,6 @@ __license__ = "MIT"
 import datetime
 import fridge
 import math
-import os
 import pygeocoder
 import socket
 import time
@@ -26,12 +25,9 @@ class Geocoder:
 	def __init__(self, cache_file=None):
 		"""Zero counters and open cache file.
 		
-		Parameters
-		----------
-		cache_file : str
+		cache_file : 
 			File path for cache file.  File will get opened for append or created if not found.
 			If cache_file is not supplied, the default file will be used.
-		
 		"""
 		self.count_request = 0         # total number of geocode requests
 		self.count_request_ok = 0      # total number of successful geocode requests
@@ -47,17 +43,13 @@ class Geocoder:
 		self.last_exec = None          # time updated at each geocode request
 		
 		if cache_file is None:
-			#path = os.path.dirname(__file__)
-			#cache_file = os.path.join(path, DEFAULT_CACHE_FILE)
 			cache_file = DEFAULT_CACHE_FILE
 			
 		# cache is a persistent dict with place address as key and lat/lng and count as value
 		self.cache = fridge.Fridge(cache_file)
 
 	def _throttle(self):
-		"""Wait an interval to not exceed rate limit.  Called before each geocode request.
-		
-		"""
+		"""Wait an interval to not exceed rate limit.  Called before each geocode request."""
 		if self.retry_count == 1:
 			# increase the throttle to respect rate limit
 			self.retry_count = 2
@@ -76,12 +68,9 @@ class Geocoder:
 	def _should_retry(self):
 		"""Handle an OVER QUERY LIMIT exception.  Called when GeocodeError is thrown.
 		
-		Return
-		------
-		retry : boolean
+		Return : boolean
 			True means wait 2 seconds, increase the throttle, and retry the request.
 			False means stop making geocode requests because daily limit was exceeded.
-			
 		"""
 		if not self.quota_exceeded:
 			if self.retry_count == 0:
@@ -101,23 +90,14 @@ class Geocoder:
 	def geocode(self, place):
 		"""Returns Google's geocode data for a place.
 		
-		Parameters
-		----------
-		place : str
-			An address or partial address in any format.
+		place : An address or partial address in any format.
 			
-		Return
-		------
-		geocode data : dict
-			Keys and values are from Google's JSON data.
+		Return : dict
+			Geocode from Google's JSON data.
 		
-		Raises
-		------
-		pygeocoder.GeocoderError
-			Quota exceeded, indecipherable address, etc.
-		Exception
-			Socket errors.
-			
+		Raises :
+			pygeocoder.GeocoderError : Quota exceeded, indecipherable address, etc.
+			Exception : Socket errors.
 		"""
 		self._throttle()
 		try:
@@ -163,24 +143,16 @@ class Geocoder:
 	def geocode_tweet(self, status):
 		"""Returns an address and coordinates associated with a tweet.
 		
-		Parameters
-		----------
 		status : dict
 			Keys and values of a tweet (i.e. a Twitter status).
 			
-		Return
-		------
-		place : str
+		Return : (str, float, float)
 			An address or part of an address from either the tweeter's Twitter profile
 			or from reverse geocoding coordinates associated with the tweet.
-		latitude, longitude : float
 			Coordinates either assocatiated with the tweet or from geocoding the 
 			location in the tweeter's Twitter profile.
 		
-		Raises
-		------
-		See Geocoder.geocode() documentation.
-			
+		Raises: See Geocoder.geocode() documentation.
 		"""
 		# start off with the location in the user's profile (it may be empty)
 		place = status['user']['location']
@@ -232,24 +204,15 @@ class Geocoder:
 		   The size of bounding box that Google returns depends on whether the place is
 		   an address, a town or a country.
 		
-		Parameters
-		----------
 		place : str
 			An address or partial address in any format.  Googles will try anything.
 
-		Return
-		------
-		latitude, longitude : float
+		Return : floatx6
 			The place's coordinates.
-		latitude, longitude : float
 			The place's SW coordinates.
-		latitude, longitude : float
 			The place's NE coordinates.
 		
-		Raises
-		------
-		See Geocoder.geocode() documentation.
-		
+		Raises : See Geocoder.geocode() documentation.
 		"""
 		results = self.geocode(place)
 		geometry = results.raw[0]['geometry']
@@ -265,22 +228,14 @@ class Geocoder:
 		   The motivation for this method is Twitter's Search API's 'geocode'
 		   parameter.
 		
-		Parameters
-		----------
 		place : str
 			An address or partial address in any format.
 
-		Return
-		------
-		latitude, longitude : float
+		Return : float, float, str
 			The place's coordinates.
-		radius : str
 			Half the distance spanning the corner's of the place's bounding box in kilomters.
 		
-		Raises
-		------
-		See Geocoder.geocode() documentation.
-		
+		Raises : See Geocoder.geocode() documentation.
 		"""
 		latC, lngC, latSW, lngSW, latNE, lngNE = self.get_region_box(place)
 		D = self.distance(latSW, lngSW, latNE, lngNE)
@@ -288,9 +243,7 @@ class Geocoder:
 
 	@classmethod
 	def distance(cls, lat1, lng1, lat2, lng2):
-		"""Calculates the distance between two points on a sphere
-		
-		"""
+		"""Calculates the distance between two points on a sphere."""
 		# Haversine distance formula
 		lat1, lng1 = math.radians(lat1), math.radians(lng1)
 		lat2, lng2 = math.radians(lat2), math.radians(lng2)
