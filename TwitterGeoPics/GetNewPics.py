@@ -2,18 +2,15 @@ __author__ = "Jonas Geduldig"
 __date__ = "December 20, 2012"
 __license__ = "MIT"
 
-# unicode printing for Windows 
-import sys, codecs
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-
 import argparse
-import Geocoder
+from Geocoder import Geocoder
 import os
+import sys
 from TwitterAPI import TwitterAPI, TwitterOAuth
 import urllib
 
 
-GEO = Geocoder.Geocoder()
+GEO = Geocoder()
 
 
 def parse_tweet(status, photo_dir, stalk):
@@ -24,21 +21,21 @@ def parse_tweet(status, photo_dir, stalk):
 			if media['type'] == 'photo':
 				photo_count += 1
 				if photo_count == 1:
-					print '\n%s: %s' % (status['user']['screen_name'], status['text'])
+					sys.stdout.write('\n%s: %s\n' % (status['user']['screen_name'], status['text']))
 				if stalk and not GEO.quota_exceeded:
 					try:
 						geocode = GEO.geocode_tweet(status)
-						print 'LOCATION:', status['user']['location']
-						print 'GEOCODE:', geocode
-					except Exception, e:
+						sys.stdout.write('LOCATION: %s\n' % status['user']['location'])
+						sys.stdout.write('GEOCODE: %s\n' % geocode)
+					except Exception as e:
 						if GEO.quota_exceeded:
-							print>>sys.stderr, '*** GEOCODER QUOTA EXCEEDED:', GEO.count_request
+							sys.stderr.write('*** GEOCODER QUOTA EXCEEDED: %s\n' % GEO.count_request)
 				if photo_dir:
 					photo_url = media['media_url_https']
 					screen_name = status['user']['screen_name']
-					print screen_name
 					file_name = os.path.join(photo_dir, screen_name) + '.' + photo_url.split('.')[-1]
 					urllib.urlretrieve(photo_url, file_name)
+					sys.stdout.write(screen_name + '\n')
 					
 
 def stream_tweets(api, list, photo_dir, region, stalk, no_retweets):
@@ -49,7 +46,7 @@ def stream_tweets(api, list, photo_dir, region, stalk, no_retweets):
 		params['track'] = words
 	if region is not None:
 		params['locations'] = '%f,%f,%f,%f' % region
-		print 'REGION', region
+		sys.stdout.write('REGION %s\n' % region)
 	while True:
 		try:
 			api.request('statuses/filter', params)
@@ -61,9 +58,9 @@ def stream_tweets(api, list, photo_dir, region, stalk, no_retweets):
 							parse_tweet(item, photo_dir, stalk)
 					elif 'disconnect' in item:
 						raise Exception('Disconnect: %s' % item['disconnect'].get('reason'))
-		except Exception, e:
+		except Exception as e:
 			# reconnect on 401 errors and socket timeouts
-			print>>sys.stderr, '*** MUST RECONNECT', e
+			sys.stderr.write('*** MUST RECONNECT %s\n' % e)
 			
 
 if __name__ == '__main__':
@@ -88,13 +85,13 @@ if __name__ == '__main__':
 		else:
 			latC, lngC, latSW, lngSW, latNE, lngNE = GEO.get_region_box(args.location)
 			region = (lngSW, latSW, lngNE, latNE)
-			print 'Google found region at %f,%f and %f,%f' % region
+			sys.stdout.write('Google found region at %f,%f and %f,%f\n' % region)
 	else:
 		region = None
 	
 	try:
 		stream_tweets(api, args.words, args.photo_dir, region, args.stalk, args.no_retweets)
 	except KeyboardInterrupt:
-		print>>sys.stderr, '\nTerminated by user'
+		sys.stderr.write('\nTerminated by user\n')
 		
 	GEO.print_stats()

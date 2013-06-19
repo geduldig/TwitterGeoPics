@@ -7,6 +7,7 @@ import fridge
 import math
 import pygeocoder
 import socket
+import sys
 import time
 
 SOCKET_TIMEOUT = 3 # seconds -- need to set a timeout or connection can hang indefinitely
@@ -106,7 +107,7 @@ class Geocoder:
 			data = pygeocoder.Geocoder.geocode(place)
 			self.count_request_ok += 1
 			return data
-		except pygeocoder.GeocoderError, e:
+		except pygeocoder.GeocoderError as e:
 			if e.status == pygeocoder.GeocoderError.G_GEO_OVER_QUERY_LIMIT and self._should_retry():
 				return self.geocode(place)
 			else:
@@ -120,7 +121,7 @@ class Geocoder:
 			place = pygeocoder.Geocoder.latlng_to_address(lat, lng)
 			self.count_request_ok += 1
 			return place
-		except pygeocoder.GeocoderError, e:
+		except pygeocoder.GeocoderError as e:
 			if e.status == pygeocoder.GeocoderError.G_GEO_OVER_QUERY_LIMIT and self._should_retry():
 				return self.latlng_to_address(lan, lng)
 			else:
@@ -134,7 +135,7 @@ class Geocoder:
 			lat, lng = pygeocoder.Geocoder.address_to_latlng(place)
 			self.count_request_ok += 1
 			return lat, lng
-		except pygeocoder.GeocoderError, e:
+		except pygeocoder.GeocoderError as e:
 			if e.status == pygeocoder.GeocoderError.G_GEO_OVER_QUERY_LIMIT and self._should_retry():
 				return self.address_to_latlng(place)
 			else:
@@ -175,7 +176,7 @@ class Geocoder:
 					lat, lng = lat.strip(), lng.strip()
 					place = self.latlng_to_address(float(lat), float(lng))
 					self.count_has_location += 1
-				except ValueError, TypeError:
+				except ValueError or TypeError:
 					pass
 		elif place is not None and place != '':
 			# there is a location in the user profile, so see if it is usable
@@ -197,8 +198,8 @@ class Geocoder:
 		else:
 			lat, lng = None, None
 			self.count_nowhere += 1
- 		return place, lat, lng
-					
+		return place, lat, lng
+
 	def get_region_box(self, place):
 		"""Get the coordinates of a place and its bounding box.
 		   The size of bounding box that Google returns depends on whether the place is
@@ -255,14 +256,19 @@ class Geocoder:
 		return earth_radius*c
 
 	def print_stats(self):
-		print '\n--STATS--'
-		print 'geo requests:      ', self.count_request
-		print 'geo requets ok:    ', self.count_request_ok
-		print 'geo quota exceeded:', self.quota_exceeded_at
-		print 'geo throttle:      ', self.throttle
-		print 'has none:          ', self.count_nowhere
-		print 'has geocode:       ', self.count_has_geocode
-		print 'has location:      ', self.count_has_location
+		stats = \
+			('\n--STATS--\n'
+			'geo requests:       %s\n'
+			'geo requets ok:     %s\n'
+			'geo quota exceeded: %s\n'
+			'geo throttle:       %s\n'
+			'has none:           %s\n'
+			'has geocode:        %s\n'
+			'has location:       %s\n') % \
+			(self.count_request, self.count_request_ok, self.quota_exceeded_at, self.throttle, 
+			self.count_nowhere, self.count_has_geocode, self.count_has_location)
+				 
+		sys.stdout.write(stats)
 
 		if self.cache:
 			counts = [ 0, 0, 0 ]
@@ -277,7 +283,9 @@ class Geocoder:
 					counts[2] += 1
 				if count > max_place[1]:
 					max_place = ( item, count )
-			print '\n--CACHE--'
-			print 'size:              ', len(self.cache)
-			print 'counts:            ', counts
-			print 'max place:         ', max_place
+			cache = \
+				('\n--CACHE--\n'
+				'size:               %s\n'
+				'counts:             %s\n'
+				'max place:          %s\n') % (len(self.cache), counts, max_place)
+			sys.stdout.write(cache)

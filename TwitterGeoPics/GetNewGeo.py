@@ -2,28 +2,25 @@ __author__ = "Jonas Geduldig"
 __date__ = "December 20, 2012"
 __license__ = "MIT"
 
-# unicode printing for Windows 
-import sys, codecs
-sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-
 import argparse
-import Geocoder
+from Geocoder import Geocoder
+import sys
 from TwitterAPI import TwitterAPI, TwitterOAuth
 
 
-GEO = Geocoder.Geocoder()
+GEO = Geocoder()
 
 
 def parse_tweet(status, region):
 	"""Print tweet, location and geocode."""
 	try:
 		geocode = GEO.geocode_tweet(status)
-		print '\n%s: %s' % (status['user']['screen_name'], status['text'])
-		print 'LOCATION:', status['user']['location']
-		print 'GEOCODE:', geocode
-	except Exception, e:
+		sys.stdout.write('\n%s: %s\n' % (status['user']['screen_name'], status['text']))
+		sys.stdout.write('LOCATION: %s\n' % status['user']['location'])
+		sys.stdout.write('GEOCODE: %s\n' % geocode)
+	except Exception as e:
 		if GEO.quota_exceeded:
-			print>>sys.stderr, '*** GEOCODER QUOTA EXCEEDED:', GEO.count_request
+			sys.stderr.write('*** GEOCODER QUOTA EXCEEDED: %s\n' % GEO.count_request)
 			raise
 
 
@@ -35,7 +32,7 @@ def stream_tweets(api, list, region):
 		params['track'] = words
 	if region is not None:
 		params['locations'] = '%f,%f,%f,%f' % region
-		print 'REGION', region
+		sys.stdout.write('REGION %s\n' % region)
 	while True:
 		try:
 			api.request('statuses/filter', params)
@@ -46,9 +43,9 @@ def stream_tweets(api, list, region):
 						parse_tweet(item, region)
 					elif 'disconnect' in item:
 						raise Exception('Disconnect: %s' % item['disconnect'].get('reason'))
-		except Exception, e:
+		except Exception as e:
 			# reconnect on 401 errors and socket timeouts
-			print>>sys.stderr, '*** MUST RECONNECT', e
+			sys.stderr.write('*** MUST RECONNECT %s\n' % e)
 
 
 if __name__ == '__main__':
@@ -70,13 +67,13 @@ if __name__ == '__main__':
 		else:
 			latC, lngC, latSW, lngSW, latNE, lngNE = GEO.get_region_box(args.location)
 			region = (lngSW, latSW, lngNE, latNE)
-			print 'Google found region at %f,%f and %f,%f' % region
+			sys.stdout.write('Google found region at %f,%f and %f,%f\n' % region)
 	else:
 		region = None
 	
 	try:
 		stream_tweets(api, args.words, region)
 	except KeyboardInterrupt:
-		print>>sys.stderr, '\nTerminated by user'
+		sys.stderr.write('\nTerminated by user\n')
 				
 	GEO.print_stats()
