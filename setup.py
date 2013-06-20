@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='TwitterGeoPics',
-    version='2.0.1',
+    version='2.0.2',
     author='Jonas Geduldig',
     author_email='boxnumber03@gmail.com',
     packages=['TwitterGeoPics'],
@@ -12,5 +12,5 @@ setup(
     license='MIT',
     keywords='twitter, geocode',
     description='Command line scripts for geocoding tweets from twitter.com and for downloading embedded photos.',
-    install_requires = ['TwitterAPI', 'pygeocoder', 'fridge']
+    install_requires = ['TwitterAPI', 'fridge']
 )

@@ -13,3 +13,5 @@ v1.1.0, 12 Feb 2013 -- Replaced TwitterAPI with puttytat for Twitter requests.
 v1.1.1, 19 Feb 2013 -- Geocoder uses viewport instead of bounds.
 
 v2.0.1, 14 Jun 2013 -- Switch to TwitterAPI and renamed to TwitterGeoPics
+
+v2.0.2, 14 Jun 2013 -- Included pygeocoder source until fixed for python 3
