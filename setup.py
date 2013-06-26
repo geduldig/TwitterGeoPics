@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='TwitterGeoPics',
-    version='2.0.2',
+    version='2.0.3',
     author='Jonas Geduldig',
     author_email='boxnumber03@gmail.com',
     packages=['TwitterGeoPics'],

@@ -7,3 +7,5 @@ TwitterGeoPics/GetNewPics.py
 TwitterGeoPics/GetOldGeo.py
 TwitterGeoPics/GetOldPics.py
 TwitterGeoPics/__init__.py
+TwitterGeoPics/pygeocoder.py
+TwitterGeoPics/pygeolib.py
