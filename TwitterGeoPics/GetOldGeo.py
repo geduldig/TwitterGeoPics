@@ -3,20 +3,8 @@ __date__ = "December 20, 2012"
 __license__ = "MIT"
 
 import argparse
-import codecs
-from Geocoder import Geocoder
-import sys
+from .Geocoder import Geocoder
 from TwitterAPI import TwitterAPI, TwitterOAuth, TwitterRestPager
-
-
-try:
-	# python 3
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr.buffer)
-except:
-	# python 2
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
 
 GEO = Geocoder()
@@ -26,9 +14,9 @@ def parse_tweet(status):
 	"""Print tweet, location and geocode."""
 	try:
 		geocode = GEO.geocode_tweet(status)
-		sys.stdout.write('\n%s: %s\n' % (status['user']['screen_name'], status['text']))
-		sys.stdout.write('LOCATION: %s\n' % status['user']['location'])
-		sys.stdout.write('GEOCODE: %s\n' % geocode)
+		print('\n%s: %s' % (status['user']['screen_name'], status['text']))
+		print('LOCATION: %s' % status['user']['location'])
+		print('GEOCODE: %s' % geocode)
 	except Exception as e:
 		if GEO.quota_exceeded:
 			raise
@@ -41,15 +29,15 @@ def search_tweets(api, list, region):
 	if region:
 		params['geocode'] = '%f,%f,%fkm' % region # lat,lng,radius
 	while True:
-		iter = TwitterRestPager(api, 'search/tweets', params).get_iterator()
-		for item in iter:
+		pager = TwitterRestPager(api, 'search/tweets', params)
+		for item in pager.get_iterator():
 			if 'text' in item:
 				parse_tweet(item)
 			elif 'message' in item:
 				if item['code'] == 131:
 					continue # ignore internal server error
 				elif item['code'] == 88:
-					sys.stderr.write('Suspend search until %s\n' % search.get_quota()['reset'])
+					print('Suspend search until %s' % search.get_quota()['reset'])
 				raise Exception('Message from twiter: %s' % item['message'])
 				
 				
@@ -67,7 +55,7 @@ if __name__ == '__main__':
 	try:
 		if args.location:
 			lat, lng, radius = GEO.get_region_circle(args.location)
-			sys.stdout.write('Google found region at %f,%f with a radius of %s km\n' % (lat, lng, radius))
+			print('Google found region at %f,%f with a radius of %s km' % (lat, lng, radius))
 			if args.radius:
 				radius = args.radius
 			region = (lat, lng, radius)
@@ -75,8 +63,8 @@ if __name__ == '__main__':
 			region = None
 		search_tweets(api, args.words, region)
 	except KeyboardInterrupt:
-		sys.stdout.write('\nTerminated by user\n')
+		print('\nTerminated by user\n')
 	except Exception as e:
-		sys.stdout.write('*** STOPPED %s\n' % e)
+		print('*** STOPPED %s\n' % e)
 		
 	GEO.print_stats()

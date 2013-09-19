@@ -3,20 +3,9 @@ __date__ = "December 20, 2012"
 __license__ = "MIT"
 
 import argparse
-import codecs
-from Geocoder import Geocoder
+from .Geocoder import Geocoder
 import sys
 from TwitterAPI import TwitterAPI, TwitterOAuth
-
-
-try:
-	# python 3
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr.buffer)
-except:
-	# python 2
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
 
 GEO = Geocoder()
@@ -26,12 +15,12 @@ def parse_tweet(status, region):
 	"""Print tweet, location and geocode."""
 	try:
 		geocode = GEO.geocode_tweet(status)
-		sys.stdout.write('\n%s: %s\n' % (status['user']['screen_name'], status['text']))
-		sys.stdout.write('LOCATION: %s\n' % status['user']['location'])
-		sys.stdout.write('GEOCODE: %s\n' % geocode)
+		print('\n%s: %s' % (status['user']['screen_name'], status['text']))
+		print('LOCATION: %s' % status['user']['location'])
+		print('GEOCODE: %s' % geocode)
 	except Exception as e:
 		if GEO.quota_exceeded:
-			sys.stderr.write('*** GEOCODER QUOTA EXCEEDED: %s\n' % GEO.count_request)
+			print('*** GEOCODER QUOTA EXCEEDED: %s\n' % GEO.count_request)
 			raise
 
 
@@ -43,20 +32,19 @@ def stream_tweets(api, list, region):
 		params['track'] = words
 	if region is not None:
 		params['locations'] = '%f,%f,%f,%f' % region
-		sys.stdout.write('REGION %s\n' % region)
+		print('REGION %s' % str(region))
 	while True:
 		try:
-			api.request('statuses/filter', params)
-			iter = api.get_iterator()
+			r = api.request('statuses/filter', params)
 			while True:
-				for item in iter:
+				for item in r.get_iterator():
 					if 'text' in item:
 						parse_tweet(item, region)
 					elif 'disconnect' in item:
 						raise Exception('Disconnect: %s' % item['disconnect'].get('reason'))
 		except Exception as e:
 			# reconnect on 401 errors and socket timeouts
-			sys.stderr.write('*** MUST RECONNECT %s\n' % e)
+			print('*** MUST RECONNECT %s\n' % e)
 
 
 if __name__ == '__main__':
@@ -78,13 +66,13 @@ if __name__ == '__main__':
 		else:
 			latC, lngC, latSW, lngSW, latNE, lngNE = GEO.get_region_box(args.location)
 			region = (lngSW, latSW, lngNE, latNE)
-			sys.stdout.write('Google found region at %f,%f and %f,%f\n' % region)
+			print('Google found region at %f,%f and %f,%f' % region)
 	else:
 		region = None
 	
 	try:
 		stream_tweets(api, args.words, region)
 	except KeyboardInterrupt:
-		sys.stderr.write('\nTerminated by user\n')
+		print('\nTerminated by user\n')
 				
 	GEO.print_stats()

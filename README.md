@@ -1,7 +1,12 @@
-# TwitterGeoPics #
+[![Downloads](https://pypip.in/d/TwitterGeoPics/badge.png)](https://crate.io/packages/TwitterGeoPics)
+[![Downloads](https://pypip.in/v/TwitterGeoPics/badge.png)](https://crate.io/packages/TwitterGeoPics)
 
-_Scripts for geocoding tweets and for downloading images embedded in tweets._
+TwitterGeoPics
+==============
 
-### Contributors ###
+Scripts for geocoding tweets and for downloading images embedded in tweets.
 
-Jonas Geduldig
+Contributors
+------------
+
+* Jonas Geduldig

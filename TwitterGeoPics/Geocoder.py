@@ -10,9 +10,11 @@ import socket
 import sys
 import time
 
+
 SOCKET_TIMEOUT = 3 # seconds -- need to set a timeout or connection can hang indefinitely
 THROTTLE_INCR = .1 # seconds -- the time by which to dynamically increase between successive requests
 DEFAULT_CACHE_FILE = 'geocode.cache'
+
 
 class Geocoder:
 	"""Wrapper for pygeocoder with Twitter helper methods and Google Maps throttling and caching.
@@ -46,7 +48,7 @@ class Geocoder:
 		if cache_file is None:
 			cache_file = DEFAULT_CACHE_FILE
 			
-		# cache is a persistent dict with place address as key and lat/lng and count as value
+		# cache is a persistent dict (place address is key, lat/lng and count is value)
 		self.cache = fridge.Fridge(cache_file)
 
 	def _throttle(self):
@@ -118,7 +120,7 @@ class Geocoder:
 		try:
 			self.count_request += 1
 			socket.setdefaulttimeout(SOCKET_TIMEOUT) 
-			place = pygeocoder.Geocoder.latlng_to_address(lat, lng)
+			place = pygeocoder.Geocoder.reverse_geocode(lat, lng).formatted_address
 			self.count_request_ok += 1
 			return place
 		except pygeocoder.GeocoderError as e:
@@ -132,7 +134,7 @@ class Geocoder:
 		try:
 			self.count_request += 1
 			socket.setdefaulttimeout(SOCKET_TIMEOUT) 
-			lat, lng = pygeocoder.Geocoder.address_to_latlng(place)
+			lat, lng = pygeocoder.Geocoder.geocode(place).coordinates
 			self.count_request_ok += 1
 			return lat, lng
 		except pygeocoder.GeocoderError as e:
@@ -157,7 +159,7 @@ class Geocoder:
 		"""
 		# start off with the location in the user's profile (it may be empty)
 		place = status['user']['location']
-		if status['coordinates'] is not None:
+		if status['coordinates']:
 			# the status is geocoded (swapped lat/lng), so use the coordinates to get the address
 			lng, lat = status['coordinates']['coordinates']
 			place = self.latlng_to_address(float(lat), float(lng))
@@ -171,19 +173,19 @@ class Geocoder:
 				lat, lng = coord.strip().split(',', 1)
 			elif ' ' in coord:
 				lat, lng = coord.strip().split(' ', 1)
-			if lat is not None and lng is not None:
+			if lat and lng:
 				try:
 					lat, lng = lat.strip(), lng.strip()
 					place = self.latlng_to_address(float(lat), float(lng))
 					self.count_has_location += 1
 				except ValueError or TypeError:
 					pass
-		elif place is not None and place != '':
+		elif place and place != '':
 			# there is a location in the user profile, so see if it is usable
 			# cache key is the place stripped of all punctuation and lower case
 			key = ' '.join(''.join(e for e in place if e.isalnum() or e == ' ').split()).lower()
 			cached_data = None
-			if self.cache is not None and key in self.cache:
+			if self.cache and key in self.cache:
 				# see if the place name is in our cache
 				cached_data = self.cache[key]
 				lat, lng = cached_data[0], cached_data[1]
@@ -192,8 +194,7 @@ class Geocoder:
 				# see if Google can interpret the location
 				lat, lng = self.address_to_latlng(place)
 				cached_data = ( lat, lng, 1 )
-			if self.cache is not None:
-				self.cache[key] = cached_data
+			self.cache[key] = cached_data
 			self.count_has_location += 1	
 		else:
 			lat, lng = None, None

@@ -3,22 +3,10 @@ __date__ = "December 20, 2012"
 __license__ = "MIT"
 
 import argparse
-import codecs
-from Geocoder import Geocoder
+from .Geocoder import Geocoder
 import os
-import sys
 from TwitterAPI import TwitterAPI, TwitterOAuth, TwitterRestPager
 import urllib
-
-
-try:
-	# python 3
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr.buffer)
-except:
-	# python 2
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-	sys.stderr = codecs.getwriter('utf8')(sys.stderr)
 
 
 GEO = Geocoder()
@@ -32,21 +20,21 @@ def parse_tweet(status, photo_dir, stalk):
 			if media['type'] == 'photo':
 				photo_count += 1
 				if photo_count == 1:
-					sys.stdout.write('\n%s: %s\n' % (status['user']['screen_name'], status['text']))
+					print('\n%s: %sprint' % (status['user']['screen_name'], status['text']))
 				if stalk and not GEO.quota_exceeded:
 					try:
 						geocode = GEO.geocode_tweet(status)
-						sys.stdout.write('LOCATION: %s\n' % status['user']['location'])
-						sys.stdout.write('GEOCODE: %s\n' % geocode)
+						print('LOCATION: %s' % status['user']['location'])
+						print('GEOCODE: %s' % geocode)
 					except Exception as e:
 						if GEO.quota_exceeded:
-							sys.stderr.write('GEOCODER QUOTA EXCEEDED: %s\n' % GEO.count_request)
+							print('GEOCODER QUOTA EXCEEDED: %s' % GEO.count_request)
 				if photo_dir:
 					photo_url = media['media_url_https']
 					screen_name = status['user']['screen_name']
 					file_name = os.path.join(photo_dir, screen_name) + '.' + photo_url.split('.')[-1]
 					urllib.urlretrieve(photo_url, file_name)
-					sys.stdout.write(screen_name + '\n')
+					print(screen_name)
 
 
 def search_tweets(api, list, photo_dir, region, stalk, no_retweets):
@@ -56,8 +44,8 @@ def search_tweets(api, list, photo_dir, region, stalk, no_retweets):
 	if region:
 		params['geocode'] = '%f,%f,%fkm' % region # lat,lng,radius
 	while True:
-		iter = TwitterRestPager(api, 'search/tweets', params).get_iterator()
-		for item in iter:
+		pager = TwitterRestPager(api, 'search/tweets', params)
+		for item in pager.get_iterator():
 			if 'text' in item:
 				if not no_retweets or not item.has_key('retweeted_status'):
 					parse_tweet(item, photo_dir, stalk)
@@ -65,7 +53,7 @@ def search_tweets(api, list, photo_dir, region, stalk, no_retweets):
 				if item['code'] == 131:
 					continue # ignore internal server error
 				elif item['code'] == 88:
-					sys.stderr.write('Suspend search until %s\n' % search.get_quota()['reset'])
+					print('Suspend search until %s' % search.get_quota()['reset'])
 				raise Exception('Message from twiter: %s' % item['message'])
 		
 			
@@ -86,7 +74,7 @@ if __name__ == '__main__':
 	try:
 		if args.location:
 			lat, lng, radius = GEO.get_region_circle(args.location)
-			sys.stdout.write('Google found region at %f,%f with a radius of %s km\n' % (lat, lng, radius))
+			print('Google found region at %f,%f with a radius of %s km' % (lat, lng, radius))
 			if args.radius:
 				radius = args.radius
 			region = (lat, lng, radius)
@@ -94,8 +82,8 @@ if __name__ == '__main__':
 			region = None
 		search_tweets(api, args.words, args.photo_dir, region, args.stalk, args.no_retweets)
 	except KeyboardInterrupt:
-		sys.stderr.write('\nTerminated by user\n')
+		print('\nTerminated by user\n')
 	except Exception as e:
-		sys.stderr.write('*** STOPPED %s\n' % e)
+		print('*** STOPPED %s\n' % e)
 		
 	GEO.print_stats()
