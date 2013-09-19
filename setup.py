@@ -25,4 +25,4 @@ setup(
     description='Command line scripts for geocoding tweets from twitter.com and for downloading embedded photos.',
     long_description=read('README.txt'),
     install_requires = ['TwitterAPI>=2.1', 'fridge']
- 
+)
