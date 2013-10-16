@@ -3,8 +3,6 @@ CHANGES.txt
 README.txt
 setup.py
 TwitterGeoPics/Geocoder.py
-TwitterGeoPics/GetNewGeo.py
-TwitterGeoPics/GetNewPics.py
-TwitterGeoPics/GetOldGeo.py
-TwitterGeoPics/GetOldPics.py
+TwitterGeoPics/SearchOldTweets.py
+TwitterGeoPics/StreamNewTweets.py
 TwitterGeoPics/__init__.py
