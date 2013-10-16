@@ -10,18 +10,24 @@ SearchOldTweets.py
 Uses 'search/tweets' Twitter resource to get tweets, geocode and embedded photos.
 
 Example:
-	python -u -m TwitterGeoPics.SearchOldTweets -words love hate -location nyc
+
+	> python -u -m TwitterGeoPics.SearchOldTweets -words love hate -location nyc
+
 For help:
-	python -u -m TwitterGeoPics.SearchOldTweets -h
+
+	> python -u -m TwitterGeoPics.SearchOldTweets -h
 
 StreamNewTweets.py
 -----------------
 Uses 'stream/filter' Twitter resource to get tweets, geocode and embedded photos.
 
 Example:
-	python -u -m TwitterGeoPics.StreamNewTweets -words love hate -location nyc
+
+	> python -u -m TwitterGeoPics.StreamNewTweets -words love hate -location nyc
+
 For help:
-	python -u -m TwitterGeoPics.StreamNewTweets -h
+
+	> python -u -m TwitterGeoPics.StreamNewTweets -h
 	
 Authentication
 --------------
