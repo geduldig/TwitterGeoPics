@@ -16,7 +16,7 @@ For help:
 
 StreamNewTweets.py
 -----------------
-Uses 'stream/filter' Twitter resource to get tweets, geocode and embedded photos.
+Uses 'statuses/filter' Twitter resource to get tweets, geocode and embedded photos.
 
 Example:
 
