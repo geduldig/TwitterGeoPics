@@ -46,9 +46,9 @@ def process_tweet(status, photo_dir, stalk):
 		lookup_geocode(status)
 
 
-def search_tweets(api, list, photo_dir, region, stalk, no_retweets, count):
-	"""Get tweets containing any words in 'list'."""
-	words = ' OR '.join(list)
+def search_tweets(api, word_list, photo_dir, region, stalk, no_retweets, count):
+	"""Get tweets containing any words in 'word_list'."""
+	words = ' OR '.join(word_list)
 	params = {'q':words, 'count':count}
 	if region:
 		params['geocode'] = '%f,%f,%fkm' % region # lat,lng,radius

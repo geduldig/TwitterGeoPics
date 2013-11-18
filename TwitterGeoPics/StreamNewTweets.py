@@ -46,11 +46,11 @@ def process_tweet(status, photo_dir, stalk):
 		lookup_geocode(status)
 					
 
-def stream_tweets(api, list, photo_dir, region, stalk, no_retweets):
-	"""Get tweets containing any words in 'list' or that originate from 'region'."""
+def stream_tweets(api, word_list, photo_dir, region, stalk, no_retweets):
+	"""Get tweets containing any words in 'word_list' or that originate from 'region'."""
 	params = {}
-	if list is not None:
-		words = ','.join(list)
+	if word_list is not None:
+		words = ','.join(word_list)
 		params['track'] = words
 	if region is not None:
 		params['locations'] = '%f,%f,%f,%f' % region
