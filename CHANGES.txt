@@ -25,3 +25,5 @@ v2.1.1, 11 Oct 2013 -- Prints GEOCODE with place and lat,lng.
 v2.2.0, 15 Oct 2013 -- Combined scripts.
 
 v2.2.1, 27 Dec 2013 -- Added pygeocoder to setup.py.
+
+v2.2.3, 27 Oct 2015 -- Added tzwhere to setup.py.
