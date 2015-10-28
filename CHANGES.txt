@@ -23,3 +23,5 @@ v2.1.0, 17 Sep 2013 -- Requires TwitterAPI 3.
 v2.1.1, 11 Oct 2013 -- Prints GEOCODE with place and lat,lng.
 
 v2.2.0, 15 Oct 2013 -- Combined scripts.
+
+v2.2.1, 27 Dec 2013 -- Added pygeocoder to setup.py.
