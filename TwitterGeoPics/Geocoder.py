@@ -260,7 +260,7 @@ class Geocoder:
 		stats = \
 			('\n--STATS--\n'
 			'geo requests:       %s\n'
-			'geo requets ok:     %s\n'
+			'geo requests ok:    %s\n'
 			'geo quota exceeded: %s\n'
 			'geo throttle:       %s\n'
 			'has none:           %s\n'
@@ -269,7 +269,7 @@ class Geocoder:
 			(self.count_request, self.count_request_ok, self.quota_exceeded_at, self.throttle, 
 			self.count_nowhere, self.count_has_geocode, self.count_has_location)
 				 
-		sys.stdout.write(stats)
+		# sys.stdout.write(stats)
 
 		if self.cache:
 			counts = [ 0, 0, 0 ]
@@ -289,4 +289,7 @@ class Geocoder:
 				'size:               %s\n'
 				'counts:             %s\n'
 				'max place:          %s\n') % (len(self.cache), counts, max_place)
-			sys.stdout.write(cache)
+			# sys.stdout.write(cache)
+			stats = stats + cache
+
+		return stats
