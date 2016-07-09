@@ -14,7 +14,6 @@ def read(*filenames, **kwargs):
 setup(
     name='TwitterGeoPics',
     version=TwitterGeoPics.__version__,
-    author='Jonas Geduldig',
     author_email='boxnumber03@gmail.com',
     packages=['TwitterGeoPics'],
     package_data={'': []},

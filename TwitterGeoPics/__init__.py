@@ -1,5 +1,5 @@
 __title__ = 'TwitterGeoPics'
 __version__ = '2.2.4'
-__author__ = 'Jonas Geduldig'
+__author__ = 'boxnumber03'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2013 Jonas Geduldig'
+__copyright__ = 'Copyright 2013 boxnumber03'
