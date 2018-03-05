@@ -1,5 +1,5 @@
-[![Downloads](https://pypip.in/d/TwitterGeoPics/badge.png)](https://crate.io/packages/TwitterGeoPics)
-[![Downloads](https://pypip.in/v/TwitterGeoPics/badge.png)](https://crate.io/packages/TwitterGeoPics)
+[![Downloads](https://img.shields.io/pypi/dm/TwitterGeoPics.svg)](https://crate.io/packages/TwitterGeoPics)
+[![Downloads](https://img.shields.io/pypi/v/TwitterGeoPics.svg)](https://crate.io/packages/TwitterGeoPics)
 
 TwitterGeoPics
 ==============
